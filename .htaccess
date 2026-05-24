@@ -2,11 +2,14 @@
   RewriteEngine On
   RewriteBase /
 
+  # API proxy folders (PHP forwarder) — do not route to SPA
+  RewriteRule ^(mobile_app|pos_phone_app)/ - [L]
+
   # Don't rewrite actual files or directories
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
 
-  # Route all requests to index.html for client-side routing
+  # Route all other requests to index.html for client-side routing
   RewriteRule ^ index.html [QSA,L]
 </IfModule>
 
