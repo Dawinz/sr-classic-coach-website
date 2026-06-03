@@ -1,8 +1,13 @@
 <?php
 declare(strict_types=1);
 
-function forwardApiRequest(string $upstreamBase, ?string $endpoint = null): void
+require_once __DIR__ . '/upstream-config.php';
+
+function forwardApiRequest(?string $upstreamBase = null, ?string $endpoint = null): void
 {
+    if ($upstreamBase === null || $upstreamBase === '') {
+        $upstreamBase = trackingMobileAppBase();
+    }
     header('Access-Control-Allow-Origin: *');
     header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
     header('Access-Control-Allow-Headers: Content-Type');
@@ -46,7 +51,9 @@ function forwardApiRequest(string $upstreamBase, ?string $endpoint = null): void
         header('Content-Type: application/json');
         echo json_encode([
             'success' => false,
-            'message' => 'Tracking server could not be reached from this host. Ask your hosting provider to allow outbound HTTP to the API server.',
+            'message' => 'Unable to connect to the tracking service.',
+            'detail' => $result['error'],
+            'hint' => 'Your host may block outbound port 555. Open mobile_app/health.php or set api/upstream-config.local.php to an HTTPS relay.',
         ]);
         exit;
     }

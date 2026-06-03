@@ -1,0 +1,8 @@
+<?php
+/**
+ * Copy to upstream-config.local.php on the server (cPanel File Manager) when direct
+ * access to 217.29.139.44:555 is blocked by your host.
+ *
+ * Use an HTTPS relay URL (Railway, Render, etc.) that forwards to the API — see server/tracking-relay/README.md
+ */
+return 'https://YOUR-RELAY-URL.up.railway.app';

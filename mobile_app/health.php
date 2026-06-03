@@ -3,32 +3,47 @@ declare(strict_types=1);
 
 header('Content-Type: application/json');
 
+require_once dirname(__DIR__) . '/api/upstream-config.php';
+
+$base = trackingMobileAppBase();
+$probeUrl = $base . '/manifest.php';
+
 $checks = [
     'php' => PHP_VERSION,
     'curl' => function_exists('curl_init'),
     'allow_url_fopen' => (bool) ini_get('allow_url_fopen'),
-    'forward_core' => is_readable(dirname(__DIR__) . '/api/forward-core.php'),
+    'upstream_base' => trackingUpstreamBase(),
+    'probe_url' => $probeUrl,
+    'local_override' => is_readable(dirname(__DIR__) . '/api/upstream-config.local.php'),
 ];
 
-$probe = null;
+$ok = false;
+$error = null;
+
 if (function_exists('curl_init')) {
-    $ch = curl_init('http://217.29.139.44:555/mobile_app/manifest.php');
+    $ch = curl_init($probeUrl);
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_NOBODY => true,
-        CURLOPT_CONNECTTIMEOUT => 10,
-        CURLOPT_TIMEOUT => 15,
+        CURLOPT_POST => true,
+        CURLOPT_POSTFIELDS => 'code_no=HEALTH&phone_no=0&country_code=255',
+        CURLOPT_HTTPHEADER => ['Content-Type: application/x-www-form-urlencoded'],
+        CURLOPT_CONNECTTIMEOUT => 12,
+        CURLOPT_TIMEOUT => 20,
     ]);
     curl_exec($ch);
-    $checks['api_connect_errno'] = curl_errno($ch);
-    $checks['api_connect_error'] = curl_error($ch);
+    $errno = curl_errno($ch);
+    $error = curl_error($ch) ?: null;
+    $checks['api_connect_errno'] = $errno;
+    $checks['api_connect_error'] = $error;
     $checks['api_http_code'] = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
-    $probe = $checks['api_connect_errno'] === 0;
+    $ok = $errno === 0;
 }
 
 echo json_encode([
-    'ok' => $probe === true,
+    'ok' => $ok,
     'checks' => $checks,
-    'note' => 'Delete health.php after testing. SES/MetaMask console messages are from browser extensions, not this site.',
+    'next_steps' => $ok
+        ? 'Tracking proxy can reach the API. Try /track on the site.'
+        : 'If api_connect_error mentions port 555, deploy server/tracking-relay on Railway and set api/upstream-config.local.php to that HTTPS URL.',
 ], JSON_PRETTY_PRINT);
