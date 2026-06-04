@@ -1,6 +1,5 @@
 ---
-# cPanel Git deployment — runs after "Deploy HEAD Commit"
-# Repo contents are the live site; no copy step needed when clone path = document root.
 deployment:
   tasks:
-    - echo "SR Classic Coach website deployed."
+    - export DEPLOYPATH=/home/srclassi/public_html/
+    - /bin/chmod -R u=rwX,go=rX $DEPLOYPATH
