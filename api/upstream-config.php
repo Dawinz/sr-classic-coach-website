@@ -3,7 +3,8 @@ declare(strict_types=1);
 
 /**
  * Upstream base for cargo tracking APIs (no trailing slash).
- * Default: direct API server. Override on cPanel if port 555 is blocked — see upstream-config.local.php.example
+ * Production default: Railway HTTPS relay (cPanel blocks outbound port 555).
+ * Local dev: create upstream-config.local.php with http://217.29.139.44:555 or set SRS_TRACKING_UPSTREAM.
  */
 function trackingUpstreamBase(): string
 {
@@ -27,7 +28,7 @@ function trackingUpstreamBase(): string
         return $base;
     }
 
-    $base = 'http://217.29.139.44:555';
+    $base = 'https://sr-classic-tracking-relay-production.up.railway.app';
     return $base;
 }
 
